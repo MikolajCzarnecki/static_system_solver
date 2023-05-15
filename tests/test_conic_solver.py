@@ -8,7 +8,7 @@ def test_elementary_equation():
     # x - 2y
     # Subject to:
     # z - 1 == 0
-    # x^2 + y^2 <= 2 z
+    # sqrt(x^2 + y^2) <= 2 z
 
     objective = np.array([1, -2, 0])
     constraints_variables = np.array([[0,0,1]])
