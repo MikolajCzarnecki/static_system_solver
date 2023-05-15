@@ -1,0 +1,13 @@
+Solve conical problem.
+For each cone approximation 
+    check if inner and outer solution match.
+        If they match then done.
+        If not then list tangents that are 'active'.
+            Take a guess at the correct solution = inner+outer / 2.
+            
+            For inner polytope:
+                remove face formed by active points.
+                add faces formed by all but one active point and solution guess.
+                
+            For outer polytope:
+                add new face formed by solution guess.
