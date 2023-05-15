@@ -1,4 +1,4 @@
-- [ ] Setup directory structure (like https://github.com/RadostW/saxs_single_bead)
+- [X] Setup directory structure (like https://github.com/RadostW/saxs_single_bead)
 - [ ] Pick a simple test case and solve it (on paper or using different solver)
 - [ ] Write solver for intersection of many cones
 - [ ] Write tests for intersections of many cones
