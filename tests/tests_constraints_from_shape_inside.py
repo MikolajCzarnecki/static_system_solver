@@ -6,11 +6,11 @@ import numpy as np
 from static_system_solver.constraints_from_shape_inside\
       import constraints_from_shape_inside
 
-# def test_square():
+def test_square():
     #Generate constraints for shape between points:
     #[[0,0],[1,0],[1,1],[0,1]]
     
-    # objective = np.array[[],[]]
+    objective = np.array[[[-1,0],[0,-1],[1,0],[0,1]],[0,0,1,1]]
 
 def test_triangle():
     #Generate constraints for shape between points:
