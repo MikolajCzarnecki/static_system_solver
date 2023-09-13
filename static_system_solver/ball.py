@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.spatial.transform import Rotation as R
-
+from matrix_operations import add_diagonally
 class Ball:
     
     def __init__(self, x : float, y : float, z : float, friction : float,\
@@ -38,19 +38,41 @@ class Ball:
         self.center = np.array([x,y,z])
         self.mass = mass
         self.radius = radius
-        self.contacts = np.empty((0,3), float)
-        self.constraintsG_matrices= []
-        self.constraintsh_matrices = []
+        self.contacts = np.empty((0, 3), float)
+        self.c_matrix = np.empty(0, float)
+        self.G_matrix = np.empty((0, 0), float)
+        self.h_matrix = np.empty(0, float)
+        self.A_matrix = np.empty((6, 0))
+        self.b_matrix = np.array([0., 0., self.mass, 0., 0., 0.])
 
     def add_contact(self, x : float, y : float, z : float):
+        #assert np.linalg.norm(np.array(x, y, z)) == self.radius, "Invalid distance"
         new_contact = np.array([x, y, z])
         self.contacts = np.vstack((self.contacts, new_contact))
 
-    def vec(self, contact_number : int):
-        return_vec = np.subtract(self.contacts[contact_number], self.center)
-        return return_vec
+        matrix_to_G = self.G_matrix_for_contact(len(self.contacts) - 1)
+        self.G_matrix = add_diagonally(self.G_matrix, matrix_to_G)
 
-    def matrix_for_contact(self, contact_number : int):
+        self.h_matrix = np.hstack((self.h_matrix, np.array([0., 0., 0.])))
+
+        self.c_matrix = np.hstack((self.h_matrix, np.array([-1., 0., 0.])))
+
+        matrix_to_A = self.A_matrix_for_contact(len(self.contacts) - 1)
+        self.A_matrix = np.hstack((self.A_matrix, matrix_to_A))
+
+
+    def A_matrix_for_contact(self, contact_number : int):
+        mat_A = np.zeros((6,3))
+        for i in range(0,2):
+            mat_A[i,i] = 1
+        
+        vec = self.contacts[contact_number] - self.center
+        mat_A[3] = np.array([0., -vec[2], vec[1]])
+        mat_A[4] = np.array([vec[2], 0., -vec[0]])
+        mat_A[5] = np.array([-vec[1], vec[0], 0.])
+        return mat_A
+
+    def G_matrix_for_contact(self, contact_number : int):
         """
         Create matrix rows representing conic
         constraints for cvxopt.solvers.conelp for given contact.
@@ -63,8 +85,7 @@ class Ball:
 
         Returns
         -------
-            np.array
-                Constraints in the form of 4-row matrix.
+        
         """
         assert np.size(self.contacts, 0) > contact_number
 
@@ -72,7 +93,7 @@ class Ball:
         vec_ortho = np.cross(vec_normal,np.array([0. ,0. , 1.]))
         ortho_norm = np.linalg.norm(vec_ortho)
     
-        if ortho_norm == 0:         #case where contact at [0., 0., x]
+        if ortho_norm == 0:         #case where contact directly below/under
             vec_ortho = np.array([0., -1., 0.])
         else:
             vec_ortho = vec_ortho/ortho_norm
@@ -84,19 +105,21 @@ class Ball:
         leftside = -np.array([rt[0][:2], rt[1][:2], rt[2][:2]])
         leftside = np.column_stack((leftside, np.array([[0.],[0.],[0.]])))
         rightside = -self.friction * np.array([[rt[0][2]], [rt[1][2]],[rt[2][2]]])
-        matrixh = np.array([0., 0., 0.])
 
         #Norm[leftside] <= rightside * friction
         matrixG = np.empty((3,0), float)
         matrixG = np.column_stack((matrixG, rightside))
         matrixG = np.column_stack((matrixG, leftside))
 
-        self.constraintsG_matrices.append(matrixG)
-        self.constraintsh_matrices.append(matrixh)
-        return
+        return matrixG
+
 
     def generate_constraints(self):
         i = 0
         for i in range(len(self.contacts)):
             self.matrix_for_contact(i)
 
+b = Ball(0., 0., 0., 1.)
+b.add_contact(0., 0., -1.)
+b.add_contact(0., 1., 0.)
+print(b.G_matrix)
