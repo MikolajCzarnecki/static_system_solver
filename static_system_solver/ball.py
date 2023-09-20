@@ -44,6 +44,7 @@ class Ball:
         self.h_matrix = np.empty(0, float)
         self.A_matrix = np.empty((6, 0))
         self.b_matrix = np.array([0., 0., self.mass, 0., 0., 0.])
+        self.dims = {'l':0, 'q': [0], 's': [0]}
 
     def add_contact(self, x : float, y : float, z : float):
         #assert np.linalg.norm(np.array(x, y, z)) == self.radius, "Invalid distance"
@@ -53,18 +54,20 @@ class Ball:
         matrix_to_G = self.G_matrix_for_contact(len(self.contacts) - 1)
         self.G_matrix = add_diagonally(self.G_matrix, matrix_to_G)
 
-        self.h_matrix = np.hstack((self.h_matrix, np.array([0., 0., 0.])))
+        self.h_matrix = np.hstack((self.h_matrix, np.array([0., 0., 0., 0.])))
 
-        self.c_matrix = np.hstack((self.h_matrix, np.array([-1., 0., 0.])))
+        self.c_matrix = np.hstack((self.c_matrix, np.array([-1., 0., 0.])))
 
         matrix_to_A = self.A_matrix_for_contact(len(self.contacts) - 1)
         self.A_matrix = np.hstack((self.A_matrix, matrix_to_A))
 
+        self.dims["q"][0] = self.dims["q"][0] + 4
+
 
     def A_matrix_for_contact(self, contact_number : int):
         mat_A = np.zeros((6,3))
-        for i in range(0,2):
-            mat_A[i,i] = 1
+        for i in range(0,3):
+            mat_A[i,i] = 1.
         
         vec = self.contacts[contact_number] - self.center
         mat_A[3] = np.array([0., -vec[2], vec[1]])
@@ -107,7 +110,7 @@ class Ball:
         rightside = -self.friction * np.array([[rt[0][2]], [rt[1][2]],[rt[2][2]]])
 
         #Norm[leftside] <= rightside * friction
-        matrixG = np.empty((3,0), float)
+        matrixG = np.empty((0,0), float)
         matrixG = np.column_stack((matrixG, rightside))
         matrixG = np.column_stack((matrixG, leftside))
 
@@ -118,8 +121,3 @@ class Ball:
         i = 0
         for i in range(len(self.contacts)):
             self.matrix_for_contact(i)
-
-b = Ball(0., 0., 0., 1.)
-b.add_contact(0., 0., -1.)
-b.add_contact(0., 1., 0.)
-print(b.G_matrix)

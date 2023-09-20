@@ -1,5 +1,3 @@
-from static_system_solver.ball import Ball as B
-
-ball = B(0., 0., 0., 1.)
-
+from ..static_system_solver.ball import Ball
+ball = ball(0., 0., 0., 1.)
 
