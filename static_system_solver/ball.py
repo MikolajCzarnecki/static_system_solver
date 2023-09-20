@@ -40,7 +40,7 @@ class Ball:
         self.radius = radius
         self.contacts = np.empty((0, 3), float)
         self.c_matrix = np.empty(0, float)
-        self.G_matrix = np.empty((0, 0), float)
+        self.G_matrix = np.empty((3, 0), float)
         self.h_matrix = np.empty(0, float)
         self.A_matrix = np.empty((6, 0))
         self.b_matrix = np.array([0., 0., self.mass, 0., 0., 0.])
@@ -110,10 +110,9 @@ class Ball:
         rightside = -self.friction * np.array([[rt[0][2]], [rt[1][2]],[rt[2][2]]])
 
         #Norm[leftside] <= rightside * friction
-        matrixG = np.empty((0,0), float)
+        matrixG = np.empty((3,0), float)
         matrixG = np.column_stack((matrixG, rightside))
         matrixG = np.column_stack((matrixG, leftside))
-
         return matrixG
 
 
