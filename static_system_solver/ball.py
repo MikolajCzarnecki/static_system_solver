@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.spatial.transform import Rotation as R
-from matrix_operations import add_diagonally
+from matrix_operations import add_diagonally, reduce_matrix
+
 class Ball:
     
     def __init__(self, x : float, y : float, z : float, friction : float,\
@@ -40,7 +41,7 @@ class Ball:
         self.radius = radius
         self.contacts = np.empty((0, 3), float)
         self.c_matrix = np.empty(0, float)
-        self.G_matrix = np.empty((3, 0), float)
+        self.G_matrix = np.empty((0, 4), float)
         self.h_matrix = np.empty(0, float)
         self.A_matrix = np.empty((6, 0))
         self.b_matrix = np.array([0., 0., self.mass, 0., 0., 0.])
@@ -115,6 +116,19 @@ class Ball:
         matrixG = np.column_stack((matrixG, leftside))
         return matrixG
 
+
+    def prepare_ball(self):
+        reduced = reduce_matrix(self.A_matrix)
+        self.A_matrix = reduced[0]
+
+        new_b = np.empty(len(self.A_matrix))
+        curr = 0
+        for i in range(len(reduced[1])):
+            if reduced[1][i] == 1:
+                new_b[curr] = self.b_matrix[i]
+                curr += 1
+
+        self.b_matrix = new_b
 
     def generate_constraints(self):
         i = 0
