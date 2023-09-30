@@ -15,5 +15,6 @@ import matrix_operations as mat
 # print(mat3)
 # print(mat.add_diagonally(mat3, mat2))
 
-tup = (1,2,3)
-print(tup[0])
+arr = [0., 0., -1.]
+print(arr[:2])
+print(np.allclose(arr[:2], [0., 0.]))

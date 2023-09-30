@@ -52,10 +52,11 @@ class Ball:
         new_contact = np.array([x, y, z])
         self.contacts = np.vstack((self.contacts, new_contact))
 
-        matrix_to_G = self.G_matrix_for_contact(len(self.contacts) - 1)
+        Gh_mats = self.G_matrix_for_contact(len(self.contacts) - 1)
+        matrix_to_G = Gh_mats[0]
         self.G_matrix = add_diagonally(self.G_matrix, matrix_to_G)
 
-        self.h_matrix = np.hstack((self.h_matrix, np.array([0., 0., 0., 0.])))
+        self.h_matrix = np.append(self.h_matrix, Gh_mats[1])
 
         self.c_matrix = np.hstack((self.c_matrix, np.array([-1., 0., 0.])))
 
@@ -75,7 +76,7 @@ class Ball:
         mat_A[4] = np.array([vec[2], 0., -vec[0]])
         mat_A[5] = np.array([-vec[1], vec[0], 0.])
         return mat_A
-
+#TODO: add constants to h and G to account for disposition by contact vec
     def G_matrix_for_contact(self, contact_number : int):
         """
         Create matrix rows representing conic
@@ -97,8 +98,8 @@ class Ball:
         vec_ortho = np.cross(vec_normal,np.array([0. ,0. , 1.]))
         ortho_norm = np.linalg.norm(vec_ortho)
     
-        if ortho_norm == 0:         #case where contact directly below/under
-            vec_ortho = np.array([0., -1., 0.])
+        if np.allclose(vec_normal[:2], [0., 0.]):         #case where contact directly below/under
+            vec_ortho = np.array([0., 1., 0.])
         else:
             vec_ortho = vec_ortho/ortho_norm
         
@@ -108,13 +109,17 @@ class Ball:
         rt = R.as_matrix(rotation)
         leftside = -np.array([rt[0][:2], rt[1][:2], rt[2][:2]])
         leftside = np.column_stack((leftside, np.array([[0.],[0.],[0.]])))
-        rightside = -self.friction * np.array([[rt[0][2]], [rt[1][2]],[rt[2][2]]])
+        rightside = self.friction * np.array([[rt[0][2]], [rt[1][2]],[rt[2][2]]])
 
         #Norm[leftside] <= rightside * friction
         matrixG = np.empty((3,0), float)
         matrixG = np.column_stack((matrixG, rightside))
         matrixG = np.column_stack((matrixG, leftside))
-        return matrixG
+        matrixh = np.array([-1 * np.dot(rt[2], vec_normal),\
+                            -1 * np.dot(rt[0], vec_normal),\
+                            -1 * np.dot(rt[1], vec_normal),\
+                            0.])
+        return (matrixG, matrixh)
 
 
     def prepare_ball(self):
