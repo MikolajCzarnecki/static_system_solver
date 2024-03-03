@@ -46,6 +46,7 @@ class Ball:
         self.A_matrix = np.empty((6, 0))
         self.b_matrix = np.array([0., 0., self.mass, 0., 0., 0.])
         self.dims = {'l':0, 'q': [0], 's': [0]}
+        self.add()
 
     def add_contact(self, x : float, y : float, z : float):
         #assert np.linalg.norm(np.array(x, y, z)) == self.radius, "Invalid distance"
